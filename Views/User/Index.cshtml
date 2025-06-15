@@ -1,0 +1,57 @@
+@model ICollection<User>
+
+@{
+    ViewData["Title"] = "Users Management";
+}
+<div class="text-center">
+    <h1 class="display-4">Users</h1>
+    @if (Model?.Any() == true)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">First Name</th>
+                    <th scope="col">Last Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.FirstName</td>
+                        <td>@user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            <a asp-controller="User" asp-action="Edit" asp-route-id="@user.Id"
+                                class="btn btn-primary btn-sm">Edit</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+
+</div>
+@* 
+<style>
+    .table th,
+    .table td {
+        vertical-align: middle;
+        padding: 12px;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .form-control {
+        border-radius: 0.375rem;
+    }
+</style> *@

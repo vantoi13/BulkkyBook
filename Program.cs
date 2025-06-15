@@ -5,6 +5,8 @@ using BulkkyBook.Data.Entities;
 using BulkkyBook.Utils.ConfigOptions.Email;
 using BulkkyBook.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using BulkkyBook.Repositories.Identity;
+using BulkkyBook.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +17,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailSender, EmailSenderService>();
+builder.Services.AddTransient<DataInitializer>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddRazorPages();
 
 builder.Services.AddAuthentication()
 .AddGoogle(options =>
@@ -61,5 +67,25 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
    .WithStaticAssets();
+using (var scope = app.Services.CreateScope())
+{
+    var servicesprovider = scope.ServiceProvider;
+    var db = servicesprovider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate(); // chạy migrate
+
+    try
+    {
+        var dataInitializer = servicesprovider.GetService<DataInitializer>();
+        if (dataInitializer != null)
+        {
+            dataInitializer.Seed().Wait(); // seed dữ liệu
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = servicesprovider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 app.Run();
