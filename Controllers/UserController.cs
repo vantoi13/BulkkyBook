@@ -1,12 +1,14 @@
 using BulkkyBook.Data.Entities;
 using BulkkyBook.DTOS.Identity;
 using BulkkyBook.Repositories;
+using BulkkyBook.Security;
+using BulkkyBook.Utils.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BulkkyBook.Controllers;
-
 public class UserController : Controller
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,11 +19,13 @@ public class UserController : Controller
         _unitOfWork = unitOfWork;
         _signInManager = signInManager;
     }
+    [Permission(Constants.Functions.SystemUser, Constants.Commands.Read)]
     public IActionResult Index()
     {
         var users = _unitOfWork.User.GetUsers();
         return View(users);
     }
+    [Permission(Constants.Functions.SystemUser, Constants.Commands.Update)]
     public IActionResult Edit(string id)
     {
         var user = _unitOfWork.User.GetUser(id);
@@ -47,6 +51,7 @@ public class UserController : Controller
         return View(vm);
     }
     [HttpPost]
+    [Permission(Constants.Functions.SystemUser, Constants.Commands.Update)]
     public async Task<IActionResult> OnPostAsync(EditUserViewModels data)
     {
         var user = _unitOfWork.User.GetUser(data.User!.Id);

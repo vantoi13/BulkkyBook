@@ -7,6 +7,8 @@ using BulkkyBook.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using BulkkyBook.Repositories.Identity;
 using BulkkyBook.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using BulkkyBook.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,11 +23,42 @@ builder.Services.AddTransient<DataInitializer>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
+builder.Services.AddScoped<ICommandRepository, CommandRepository>();
+builder.Services.AddScoped<IFunctionRepository, FunctionRepository>();
 
 builder.Services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultUI()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/Identity/Account/Login"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages()
+.AddRazorPagesOptions(options =>
+{
+    options.Conventions.AllowAnonymousToPage("/Index");
+    options.Conventions.AllowAnonymousToPage("/Identity/Account/Login");
+    options.Conventions.AllowAnonymousToPage("/Identity/Account/AccessDenied");
+    options.Conventions.AllowAnonymousToPage("/Identity/Account/Logout");
+
+});
 
 builder.Services.AddAuthentication()
 .AddGoogle(options =>
@@ -38,6 +71,11 @@ builder.Services.AddAuthentication()
     options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
     options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+
 
 var app = builder.Build();
 
@@ -78,7 +116,7 @@ using (var scope = app.Services.CreateScope())
         var dataInitializer = servicesprovider.GetService<DataInitializer>();
         if (dataInitializer != null)
         {
-            dataInitializer.Seed().Wait(); // seed dữ liệu
+            dataInitializer.InitializeAsync().Wait(); // seed dữ liệu
         }
     }
     catch (Exception ex)

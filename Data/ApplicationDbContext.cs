@@ -22,5 +22,17 @@ public class ApplicationDbContext : IdentityDbContext<User>
         modelBuilder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
         modelBuilder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
         modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+
+        modelBuilder.Entity<CommandInFunction>()
+            .HasKey(c => new { c.CommandId, c.FunctionId });
+        modelBuilder.Entity<Permission>()
+        .HasKey(p => new { p.RoleId, p.FunctionId, p.CommandId });
     }
+
+
+
+    public DbSet<Command> Commands { get; set; } = null!;
+    public DbSet<CommandInFunction> CommandsInFunctions { get; set; } = null!;
+    public DbSet<Permission> Permissions { get; set; } = null!;
+    public DbSet<Function> Functions { get; set; } = null!;
 }
