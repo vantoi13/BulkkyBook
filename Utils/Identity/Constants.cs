@@ -17,7 +17,10 @@ namespace BulkkyBook.Utils.Identity
             public const string SystemPermission = "SYSTEM_PERMISSION";
             public const string SystemFunction = "SYSTEM_FUNCTION";
 
-
+            // Thêm các function mới cho quản lý sách
+            public const string SystemAuthor = "SYSTEM_AUTHOR";
+            public const string SystemBook = "SYSTEM_BOOK";
+            public const string SystemCategory = "SYSTEM_CATEGORY";
         }
         public static class Commands
         {

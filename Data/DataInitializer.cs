@@ -21,10 +21,22 @@ namespace BulkkyBook.Data
         }
         public async Task InitializeAsync()
         {
+            // await ClearExistingDataAsync();
             await InitializeRolesAsync();
             await InitializeUsersAsync();
             await InitializeFunctionsAsync();
+            await InitializeSampleDataAsync();
         }
+
+        // private async Task ClearExistingDataAsync()
+        // {
+        //     // Xóa data cũ để có thể seed lại
+        //     _context.Permissions.RemoveRange(_context.Permissions);
+        //     _context.CommandsInFunctions.RemoveRange(_context.CommandsInFunctions);
+        //     _context.Functions.RemoveRange(_context.Functions);
+        //     _context.Commands.RemoveRange(_context.Commands);
+        //     await _context.SaveChangesAsync();
+        // }
 
         private async Task InitializeRolesAsync()
         {
@@ -132,7 +144,7 @@ namespace BulkkyBook.Data
                 {
                     new Function
                     {
-                        Id = "SYSTEM",
+                        Id = Constants.Functions.System,
                         Name = "Quản lý hệ thống",
                         ParentId = null,
                         SortOrder = 1,
@@ -141,76 +153,83 @@ namespace BulkkyBook.Data
                     },
                     new Function
                     {
-                        Id = "SYSTEM_USER",
+                        Id = Constants.Functions.SystemUser,
                         Name = "Quản lý người dùng",
-                        ParentId = "SYSTEM",
+                        ParentId = Constants.Functions.System,
                         SortOrder = 2,
                         Icon = "bi bi-people",
                         Url = "/system/user"
                     },
                     new Function
                     {
-                        Id = "SYSTEM_ROLE",
+                        Id = Constants.Functions.SystemRole,
                         Name = "Quản lý vai trò",
-                        ParentId = "SYSTEM",
+                        ParentId = Constants.Functions.System,
                         SortOrder = 3,
                         Icon = "bi bi-people",
                         Url = "/system/role"
                     },
                     new Function
                     {
-                        Id = "SYSTEM_PERMISSION",
+                        Id = Constants.Functions.SystemPermission,
                         Name = "Quản lý quyền hạn",
-                        ParentId = "SYSTEM",
+                        ParentId = Constants.Functions.System,
                         SortOrder = 4,
                         Icon = "bi bi-key",
                         Url = "/system/permission"
                     },
                     new Function
                     {
-                        Id = "SYSTEM_FUNCTION",
+                        Id = Constants.Functions.SystemFunction,
                         Name = "Quản lý chức năng",
-                        ParentId = "SYSTEM",
+                        ParentId = Constants.Functions.System,
                         SortOrder = 5,
                         Icon = "bi bi-gear",
                         Url = "/system/function"
                     },
-                });
-                await _context.SaveChangesAsync();
-            }
-            if (!_context.Commands.Any())
-            {
-                _context.Commands.AddRange(new List<Command>
-                {
-                    new Command
+                    new Function
                     {
-                        Id = "CREATE",
-                        Name = "Tạo"
+                        Id = Constants.Functions.SystemAuthor,
+                        Name = "Quản lý tác giả",
+                        ParentId = Constants.Functions.System,
+                        SortOrder = 6,
+                        Icon = "bi bi-person-badge",
+                        Url = "/author"
                     },
-                    new Command
+                    new Function
                     {
-                        Id = "READ",
-                        Name = "Xem"
+                        Id = Constants.Functions.SystemCategory,
+                        Name = "Quản lý thể loại",
+                        ParentId = Constants.Functions.System,
+                        SortOrder = 7,
+                        Icon = "bi bi-tags",
+                        Url = "/category"
                     },
-                    new Command
+                    new Function
                     {
-                        Id = "UPDATE",
-                        Name = "Cập nhật"
-                    },
-                    new Command
-                    {
-                        Id = "DELETE",
-                        Name = "Xóa"
-                    },
-                    new Command
-                    {
-                        Id = "EXECUTE",
-                        Name = "Thực thi"
+                        Id = Constants.Functions.SystemBook,
+                        Name = "Quản lý sách",
+                        ParentId = Constants.Functions.System,
+                        SortOrder = 8,
+                        Icon = "bi bi-book",
+                        Url = "/book"
                     },
                 });
                 await _context.SaveChangesAsync();
             }
 
+            if (!_context.Commands.Any())
+            {
+                _context.Commands.AddRange(new List<Command>
+                {
+                    new Command { Id = Constants.Commands.Create, Name = "Tạo" },
+                    new Command { Id = Constants.Commands.Read, Name = "Xem" },
+                    new Command { Id = Constants.Commands.Update, Name = "Cập nhật" },
+                    new Command { Id = Constants.Commands.Delete, Name = "Xóa" },
+                    new Command { Id = Constants.Commands.EXECUTE, Name = "Thực thi" },
+                });
+                await _context.SaveChangesAsync();
+            }
 
             var functions = await _context.Functions.ToListAsync();
             var commands = await _context.Commands.ToListAsync();
@@ -220,13 +239,13 @@ namespace BulkkyBook.Data
                 foreach (var function in functions)
                 {
                     _context.CommandsInFunctions.AddRange(new List<CommandInFunction>
-        {
-            new CommandInFunction { FunctionId = function.Id, CommandId = "CREATE" },
-            new CommandInFunction { FunctionId = function.Id, CommandId = "READ" },
-            new CommandInFunction { FunctionId = function.Id, CommandId = "UPDATE" },
-            new CommandInFunction { FunctionId = function.Id, CommandId = "DELETE" },
-            new CommandInFunction { FunctionId = function.Id, CommandId = "EXECUTE" },
-        });
+                    {
+                        new CommandInFunction { FunctionId = function.Id, CommandId = Constants.Commands.Create },
+                        new CommandInFunction { FunctionId = function.Id, CommandId = Constants.Commands.Read },
+                        new CommandInFunction { FunctionId = function.Id, CommandId = Constants.Commands.Update },
+                        new CommandInFunction { FunctionId = function.Id, CommandId = Constants.Commands.Delete },
+                        new CommandInFunction { FunctionId = function.Id, CommandId = Constants.Commands.EXECUTE },
+                    });
                 }
                 await _context.SaveChangesAsync();
             }
@@ -249,7 +268,91 @@ namespace BulkkyBook.Data
                 _context.Permissions.AddRange(permissions);
                 await _context.SaveChangesAsync();
             }
+        }
 
+        private async Task InitializeSampleDataAsync()
+        {
+            // Thêm tác giả mẫu
+            var author1 = new Author
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Nguyễn Nhật Ánh",
+                Biography = "Tác giả nổi tiếng với nhiều tác phẩm văn học thiếu nhi",
+                BirthDate = new DateTime(1955, 5, 7),
+                Country = "Việt Nam",
+                Email = "nna@example.com",
+                IsActive = true
+            };
+
+            var author2 = new Author
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Dale Carnegie",
+                Biography = "Tác giả nổi tiếng với các sách về phát triển bản thân",
+                BirthDate = new DateTime(1888, 11, 24),
+                Country = "Mỹ",
+                Email = "dc@example.com",
+                IsActive = true
+            };
+
+            _context.Authors.AddRange(author1, author2);
+            await _context.SaveChangesAsync();
+
+            // Thêm thể loại mẫu
+            var category1 = new Category
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Văn học",
+                Description = "Sách văn học",
+                DisplayOrder = 1,
+                IconClass = "bi bi-book",
+                IsActive = true
+            };
+
+            var category2 = new Category
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Kỹ năng sống",
+                Description = "Sách kỹ năng sống",
+                DisplayOrder = 2,
+                IconClass = "bi bi-person",
+                IsActive = true
+            };
+
+            _context.Categories.AddRange(category1, category2);
+            await _context.SaveChangesAsync();
+
+            // Thêm sách mẫu
+            var book1 = new Book
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = "Cho tôi xin một vé đi tuổi thơ",
+                Description = "Một câu chuyện đầy cảm xúc về tuổi thơ",
+                ISBN = "9786041082079",
+                PublicationYear = 2008,
+                PageCount = 208,
+                Price = 65000,
+                StockQuantity = 100,
+                AuthorId = author1.Id,
+                CategoryId = category1.Id
+            };
+
+            var book2 = new Book
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = "Đắc Nhân Tâm",
+                Description = "Nghệ thuật đối nhân xử thế",
+                ISBN = "9786041082080",
+                PublicationYear = 1936,
+                PageCount = 320,
+                Price = 88000,
+                StockQuantity = 150,
+                AuthorId = author2.Id,
+                CategoryId = category2.Id
+            };
+
+            _context.Books.AddRange(book1, book2);
+            await _context.SaveChangesAsync();
         }
     }
 }

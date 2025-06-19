@@ -1,0 +1,192 @@
+@model BulkkyBook.DTOS.Book.CreateBookDto
+
+@{
+    ViewData["Title"] = "Thêm Sách Mới";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Thêm Sách Mới</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Thông tin Sách</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Basic Information -->
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Title" class="form-label">Tên sách <span
+                                        class="text-danger">*</span></label>
+                                <input asp-for="Title" class="form-control" placeholder="Nhập tên sách">
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ISBN" class="form-label">ISBN <span class="text-danger">*</span></label>
+                                <input asp-for="ISBN" class="form-control" placeholder="Nhập ISBN">
+                                <span asp-validation-for="ISBN" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PublicationYear" class="form-label">Năm xuất bản <span
+                                        class="text-danger">*</span></label>
+                                <input asp-for="PublicationYear" class="form-control" type="number" min="1900"
+                                    max="@DateTime.Now.Year" placeholder="Nhập năm xuất bản">
+                                <span asp-validation-for="PublicationYear" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PageCount" class="form-label">Số trang</label>
+                                <input asp-for="PageCount" class="form-control" type="number" min="1"
+                                    placeholder="Nhập số trang">
+                                <span asp-validation-for="PageCount" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">Giá <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="Price" class="form-control" type="number" min="0" step="1000"
+                                        placeholder="Nhập giá">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="StockQuantity" class="form-label">Số lượng tồn kho <span
+                                        class="text-danger">*</span></label>
+                                <input asp-for="StockQuantity" class="form-control" type="number" min="0"
+                                    placeholder="Nhập số lượng">
+                                <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="AuthorId" class="form-label">Tác giả <span
+                                        class="text-danger">*</span></label>
+                                <select asp-for="AuthorId" class="form-select" asp-items="ViewBag.Authors">
+                                    <option value="">-- Chọn tác giả --</option>
+                                </select>
+                                <span asp-validation-for="AuthorId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CategoryId" class="form-label">Thể loại <span
+                                        class="text-danger">*</span></label>
+                                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                    <option value="">-- Chọn thể loại --</option>
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="4"
+                                    placeholder="Nhập mô tả về sách"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <input type="file" asp-for="ImageFile" class="form-control mt-2" accept="image/*">
+                                <span asp-validation-for="CoverImage" class="text-danger"></span>
+                                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                                <small class="form-text text-muted">Nhập URL hoặc chọn file ảnh bìa sách (tùy
+                                    chọn)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview and Settings -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Xem trước</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div id="coverPreview" class="mb-3">
+                                    <div class="bg-light d-flex align-items-center justify-content-center"
+                                        style="width: 150px; height: 200px; margin: 0 auto;">
+                                        <i class="fas fa-book fa-3x text-muted"></i>
+                                    </div>
+                                </div>
+                                <h6 id="titlePreview" class="text-muted">Tên sách</h6>
+                                <p id="authorPreview" class="text-muted mb-0">Tác giả</p>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="mb-0">Cài đặt</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked>
+                                    <label asp-for="IsActive" class="form-check-label">Kích hoạt sách</label>
+                                </div>
+                                <small class="form-text text-muted">Sách sẽ hiển thị trong hệ thống khi được kích
+                                    hoạt</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu sách
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Preview functionality
+            $('#Title').on('input', function () {
+                $('#titlePreview').text($(this).val() || 'Tên sách');
+            });
+
+            $('#AuthorId').on('change', function () {
+                var selectedOption = $(this).find('option:selected');
+                $('#authorPreview').text(selectedOption.text() || 'Tác giả');
+            });
+
+            $('#CoverImage').on('input', function () {
+                var url = $(this).val();
+                if (url) {
+                    $('#coverPreview').html('<img src="' + url + '" class="img-fluid" style="max-width: 150px; max-height: 200px;" onerror="this.parentElement.innerHTML=\'<div class=\\\"bg-light d-flex align-items-center justify-content-center\\\" style=\\\"width: 150px; height: 200px; margin: 0 auto;\\\"><i class=\\\"fas fa-book fa-3x text-muted\\\"></i></div>\'">');
+                } else {
+                    $('#coverPreview').html('<div class="bg-light d-flex align-items-center justify-content-center" style="width: 150px; height: 200px; margin: 0 auto;"><i class="fas fa-book fa-3x text-muted"></i></div>');
+                }
+            });
+
+            // Auto-format ISBN
+            $('#ISBN').on('input', function () {
+                var value = $(this).val().replace(/[^0-9Xx-]/g, '');
+                $(this).val(value);
+            });
+
+            // Auto-format price
+            $('#Price').on('input', function () {
+                var value = $(this).val().replace(/[^0-9]/g, '');
+                $(this).val(value);
+            });
+        });
+    </script>
+}

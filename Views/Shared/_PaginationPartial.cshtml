@@ -1,0 +1,45 @@
+@model BulkkyBook.Utils.PaginatedList<object>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+    var currentUrl = Context.Request.Path;
+    var queryString = Context.Request.QueryString.Value ?? "";
+    var baseUrl = $"{currentUrl}{(queryString.Contains("?") ? "&" : "?")}pageIndex=";
+
+    var itemsPerPage = Model.Count;
+    var firstItem = ((Model.PageIndex - 1) * itemsPerPage) + 1;
+    var lastItem = Math.Min(Model.PageIndex * itemsPerPage, Model.TotalItems);
+}
+
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <div>
+        @if (Model.TotalItems > 0)
+        {
+            <text>Hiển thị @firstItem - @lastItem trên tổng số @Model.TotalItems kết quả</text>
+        }
+        else
+        {
+            <text>Không có kết quả nào</text>
+        }
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item @prevDisabled">
+                    <a class="page-link" href="@(baseUrl + (Model.PageIndex - 1))" tabindex="-1">Trước</a>
+                </li>
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" href="@(baseUrl + i)">@i</a>
+                    </li>
+                }
+                <li class="page-item @nextDisabled">
+                    <a class="page-link" href="@(baseUrl + (Model.PageIndex + 1))">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

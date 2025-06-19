@@ -7,8 +7,11 @@ using BulkkyBook.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using BulkkyBook.Repositories.Identity;
 using BulkkyBook.Repositories;
+using BulkkyBook.Repositories.BookRepositories;
+using BulkkyBook.Services.Book;
 using Microsoft.AspNetCore.Authorization;
 using BulkkyBook.Security;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +23,29 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailSender, EmailSenderService>();
 builder.Services.AddTransient<DataInitializer>();
+
+// Identity Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<ICommandRepository, CommandRepository>();
 builder.Services.AddScoped<IFunctionRepository, FunctionRepository>();
+
+// Book Repositories
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+
+// UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Book Services
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IBookService, BookService>();
+
+// Thêm đăng ký AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddIdentity<User, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -76,6 +96,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
+builder.Services.AddScoped<BulkkyBook.Utils.Storage.IStorageService, BulkkyBook.Utils.Storage.FileStorageService>();
 
 var app = builder.Build();
 

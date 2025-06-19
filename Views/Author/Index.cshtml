@@ -1,0 +1,247 @@
+@model BulkkyBook.Utils.PaginatedList<BulkkyBook.DTOS.Book.AuthorDto>
+
+@{
+    ViewData["Title"] = "Quản lý Tác giả";
+    var isSearching = !string.IsNullOrEmpty(ViewBag.SearchTerm as string);
+    var hasData = Model != null && Model.Count > 0;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Quản lý Tác giả</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm Tác giả
+        </a>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tìm kiếm & Lọc</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label for="searchName" class="form-label">Tên tác giả</label>
+                    <input type="text" class="form-control" id="searchName" name="searchTerm"
+                        value="@ViewBag.SearchTerm" placeholder="Nhập tên tác giả...">
+                </div>
+                <div class="col-md-3">
+                    <label for="filterStatus" class="form-label">Trạng thái</label>
+                    <select class="form-select" id="filterStatus" name="status">
+                        <option value="">Tất cả</option>
+                        @{
+                            var status = ViewBag.Status as string;
+                            if (status == "true")
+                            {
+                                <text><option value="true" selected>Hoạt động</option><option value="false">Không hoạt động</option></text>
+                            }
+                            else if (status == "false")
+                            {
+                                <text><option value="true">Hoạt động</option><option value="false" selected>Không hoạt động</option></text>
+                            }
+                            else
+                            {
+                                <text><option value="true">Hoạt động</option><option value="false">Không hoạt động</option></text>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Authors Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách Tác giả</h6>
+            <div class="text-muted">
+                <span id="totalCount">@(Model != null ? Model.TotalItems : 0)</span> tác giả
+            </div>
+        </div>
+        <div class="card-body">
+            @if (isSearching)
+            {
+                if (hasData)
+                {
+                    <div class="alert alert-success">Tìm thấy @(Model != null ? Model.TotalItems : 0) tác giả phù hợp.</div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">Không có tác giả nào được tìm thấy với từ khóa này.</div>
+                }
+            }
+            <div class="table-responsive">
+                <table class="table table-bordered" id="authorsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Ảnh</th>
+                            <th>Tên tác giả</th>
+                            <th>Email</th>
+                            <th>Quốc gia</th>
+                            <th>Số sách</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null)
+                        {
+                            foreach (var author in Model)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        @if (!string.IsNullOrEmpty(author?.PhotoUrl))
+                                        {
+                                            <img src="@author.PhotoUrl" alt="Ảnh tác giả" class="rounded-circle"
+                                                style="width: 40px; height: 40px; object-fit: cover;"
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                            <i class="fas fa-user fa-2x text-muted" style="display: none;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-user fa-2x text-muted"></i>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@author?.Name</div>
+                                        @if (!string.IsNullOrEmpty(author?.BirthDate?.ToString("dd/MM/yyyy")))
+                                        {
+                                            <small class="text-muted">Sinh: @author?.BirthDate?.ToString("dd/MM/yyyy")</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(author?.Email))
+                                        {
+                                            <a href="mailto:@author.Email" class="text-decoration-none">@author.Email</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(author?.Country))
+                                        {
+                                            <span class="badge bg-info">@author.Country</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary fs-6">@(author?.BookCount ?? 0)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (author != null && author.IsActive)
+                                        {
+                                            <span class="badge bg-success">Hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Không hoạt động</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @(author?.CreatedDate?.ToString("dd/MM/yyyy") ?? "N/A")
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@author?.Id"
+                                                class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@author?.Id"
+                                                class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-controller="Book" asp-action="ByAuthor" asp-route-authorId="@author?.Id"
+                                                class="btn btn-sm btn-outline-primary" title="Xem sách">
+                                                <i class="fas fa-book"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="confirmDelete('@author?.Id', '@author?.Name')" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @{
+                var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+                var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+                var query = Context.Request.Query.ToDictionary(x => x.Key, x => x.Value.ToString());
+                string BuildPageUrl(int page)
+                {
+                    var dict = new Dictionary<string, string>(query);
+                    dict["pageIndex"] = page.ToString();
+                    return $"{Context.Request.Path}?{string.Join("&", dict.Select(kv => $"{kv.Key}={kv.Value}"))}";
+                }
+            }
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="d-flex justify-content-center mt-4">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" href="@BuildPageUrl(Model.PageIndex - 1)">Trước</a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link" href="@BuildPageUrl(i)">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" href="@BuildPageUrl(Model.PageIndex + 1)">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa tác giả <strong id="authorNameToDelete"></strong>?</p>
+                <p class="text-danger"><small>Hành động này không thể hoàn tác!</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form asp-action="Delete" method="post" style="display: inline;">
+                    <input type="hidden" id="authorIdToDelete" name="id" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, name) {
+            $('#authorIdToDelete').val(id);
+            $('#authorNameToDelete').text(name);
+            $('#deleteModal').modal('show');
+        }
+    </script>
+}

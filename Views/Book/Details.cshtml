@@ -1,0 +1,214 @@
+@model BulkkyBook.DTOS.Book.BookDto
+
+@{
+    ViewData["Title"] = "Chi tiết Sách";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Chi tiết Sách</h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Book Cover and Basic Info -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hình ảnh</h6>
+                </div>
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" alt="Bìa sách" class="img-fluid rounded shadow-sm"
+                            style="max-width: 250px; max-height: 350px;">
+                    }
+                    else
+                    {
+                        <div class="bg-light d-flex align-items-center justify-content-center rounded shadow-sm"
+                            style="width: 250px; height: 350px; margin: 0 auto;">
+                            <i class="fas fa-book fa-4x text-muted"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thao tác nhanh</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Author" asp-action="Details" asp-route-id="@Model.AuthorId"
+                            class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> Xem tác giả
+                        </a>
+                        <a asp-controller="Category" asp-action="Details" asp-route-id="@Model.CategoryId"
+                            class="btn btn-outline-info">
+                            <i class="fas fa-tags"></i> Xem thể loại
+                        </a>
+                        <a asp-controller="Book" asp-action="ByAuthor" asp-route-authorId="@Model.AuthorId"
+                            class="btn btn-outline-success">
+                            <i class="fas fa-list"></i> Sách cùng tác giả
+                        </a>
+                        <a asp-controller="Book" asp-action="ByCategory" asp-route-categoryId="@Model.CategoryId"
+                            class="btn btn-outline-warning">
+                            <i class="fas fa-filter"></i> Sách cùng thể loại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Details -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin chi tiết</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h3 class="text-primary">@Model.Title</h3>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                <a asp-controller="Author" asp-action="Details" asp-route-id="@Model.AuthorId"
+                                    class="text-decoration-none">@Model.AuthorName</a>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ISBN</label>
+                            <p class="form-control-plaintext">
+                                <code class="fs-6">@Model.ISBN</code>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Năm xuất bản</label>
+                            <p class="form-control-plaintext">@Model.PublicationYear</p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Số trang</label>
+                            <p class="form-control-plaintext">
+                                @Model.PageCount trang
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giá</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-success fs-6">@Model.Price.ToString("N0") VNĐ</span>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Số lượng tồn kho</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge @(Model.StockQuantity > 0 ? "bg-success" : "bg-danger") fs-6">
+                                    @Model.StockQuantity
+                                </span>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Thể loại</label>
+                            <p class="form-control-plaintext">
+                                <a asp-controller="Category" asp-action="Details" asp-route-id="@Model.CategoryId"
+                                    class="text-decoration-none">
+                                    <span class="badge bg-info">@Model.CategoryName</span>
+                                </a>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Không hoạt động</span>
+                            }
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Ngày tạo</label>
+                            @Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Cập nhật lần cuối</label>
+                            @(Model.UpdatedDate != null ? Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm") :
+                                                        "Chưa cập nhật")
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Description))
+                        {
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Mô tả</label>
+                                <div class="form-control-plaintext">
+                                    <p class="mb-0">@Model.Description</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin hệ thống</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ID</label>
+                            <p class="form-control-plaintext">
+                                <code>@Model.Id</code>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ID Tác giả</label>
+                            <p class="form-control-plaintext">
+                                <code>@Model.AuthorId</code>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ID Thể loại</label>
+                            <p class="form-control-plaintext">
+                                <code>@Model.CategoryId</code>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">URL Hình ảnh</label>
+                            <p class="form-control-plaintext">
+                                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                                {
+                                    <a href="@Model.ImageUrl" target="_blank" class="text-decoration-none">
+                                        <i class="fas fa-external-link-alt"></i> Xem hình ảnh
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa có hình ảnh</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -36,12 +36,14 @@ public class RoleController : Controller
             var result = await _roleManager.CreateAsync(role);
             if (result.Succeeded)
             {
+                TempData["Success"] = $"Tạo vai trò '{role.Name}' thành công!";
                 return RedirectToAction(nameof(Index));
             }
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError("", error.Description);
             }
+            TempData["Error"] = "Có lỗi xảy ra khi tạo vai trò.";
         }
         return View(role);
     }
@@ -51,7 +53,8 @@ public class RoleController : Controller
         var role = _roleManager.FindByIdAsync(id).Result;
         if (role == null)
         {
-            return NotFound();
+            TempData["Error"] = "Không tìm thấy vai trò.";
+            return RedirectToAction(nameof(Index));
         }
         return View(role);
     }
@@ -61,14 +64,16 @@ public class RoleController : Controller
     {
         if (id != role.Id)
         {
-            return NotFound();
+            TempData["Error"] = "ID vai trò không hợp lệ.";
+            return RedirectToAction(nameof(Index));
         }
         if (ModelState.IsValid)
         {
             var existingRole = await _roleManager.FindByIdAsync(id);
             if (existingRole == null)
             {
-                return NotFound();
+                TempData["Error"] = "Không tìm thấy vai trò.";
+                return RedirectToAction(nameof(Index));
             }
 
             existingRole.Name = role.Name;
@@ -76,6 +81,7 @@ public class RoleController : Controller
 
             if (result.Succeeded)
             {
+                TempData["Success"] = $"Cập nhật vai trò '{role.Name}' thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -83,6 +89,7 @@ public class RoleController : Controller
             {
                 ModelState.AddModelError("", error.Description);
             }
+            TempData["Error"] = "Có lỗi xảy ra khi cập nhật vai trò.";
         }
 
         return View(role);
@@ -94,19 +101,23 @@ public class RoleController : Controller
         var role = await _roleManager.FindByIdAsync(id);
         if (role == null)
         {
-            return NotFound();
+            TempData["Error"] = "Không tìm thấy vai trò.";
+            return RedirectToAction(nameof(Index));
         }
         if (role.Name!.Equals("Admin", StringComparison.OrdinalIgnoreCase))
         {
-            return BadRequest("Cannot delete the Admin role.");
+            TempData["Error"] = "Không thể xóa vai trò Admin.";
+            return RedirectToAction(nameof(Index));
         }
 
         var result = await _roleManager.DeleteAsync(role);
         if (!result.Succeeded)
         {
-            return BadRequest(result.Errors);
+            TempData["Error"] = "Có lỗi xảy ra khi xóa vai trò.";
+            return RedirectToAction(nameof(Index));
         }
 
+        TempData["Success"] = $"Xóa vai trò '{role.Name}' thành công!";
         return RedirectToAction(nameof(Index));
     }
 }

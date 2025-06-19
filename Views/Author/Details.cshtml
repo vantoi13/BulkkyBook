@@ -1,0 +1,193 @@
+@model BulkkyBook.DTOS.Book.AuthorDto
+
+@{
+    ViewData["Title"] = "Chi tiết Tác giả";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Chi tiết Tác giả</h1>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Author Photo and Basic Info -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Ảnh đại diện</h6>
+                </div>
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <img src="@Model.PhotoUrl" alt="Ảnh tác giả" class="img-fluid rounded-circle shadow-sm"
+                            style="width: 200px; height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="bg-light d-flex align-items-center justify-content-center rounded-circle shadow-sm"
+                            style="width: 200px; height: 200px; margin: 0 auto;">
+                            <i class="fas fa-user fa-4x text-muted"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thao tác nhanh</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Book" asp-action="ByAuthor" asp-route-authorId="@Model.Id"
+                            class="btn btn-outline-primary">
+                            <i class="fas fa-book"></i> Xem sách của tác giả
+                        </a>
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email" class="btn btn-outline-info">
+                                <i class="fas fa-envelope"></i> Gửi email
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Author Details -->
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin chi tiết</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <h3 class="text-primary">@Model.Name</h3>
+                            @if (!string.IsNullOrEmpty(Model.Country))
+                            {
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-globe me-2"></i>
+                                    <span class="badge bg-info">@Model.Country</span>
+                                </p>
+                            }
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <p class="form-control-plaintext">
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa cập nhật</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Quốc gia</label>
+                            <p class="form-control-plaintext">
+                                @(string.IsNullOrEmpty(Model.Country) ? "Chưa cập nhật" : Model.Country)
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Ngày sinh</label>
+                            <p class="form-control-plaintext">
+                                @(Model.BirthDate?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Số sách</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-primary fs-6">@Model.BookCount</span>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Trạng thái</label>
+                            <p class="form-control-plaintext">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Không hoạt động</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Ngày tạo</label>
+                            <p class="form-control-plaintext">
+                                @(Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Cập nhật lần cuối</label>
+                            <p class="form-control-plaintext">
+                                @(Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa cập nhật")
+                            </p>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.Biography))
+                        {
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Tiểu sử</label>
+                                <div class="form-control-plaintext">
+                                    <p class="mb-0">@Model.Biography</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin hệ thống</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ID</label>
+                            <p class="form-control-plaintext">
+                                <code>@Model.Id</code>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">URL Ảnh</label>
+                            <p class="form-control-plaintext">
+                                @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                                {
+                                    <a href="@Model.PhotoUrl" target="_blank" class="text-decoration-none">
+                                        <i class="fas fa-external-link-alt"></i> Xem ảnh
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa có ảnh</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

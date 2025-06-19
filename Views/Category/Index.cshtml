@@ -1,0 +1,180 @@
+@model IEnumerable<BulkkyBook.DTOS.Book.CategoryDto>
+
+@{
+    ViewData["Title"] = "Quản lý Thể loại";
+    var isSearching = !string.IsNullOrEmpty(ViewBag.SearchTerm as string);
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Quản lý Thể loại</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm Thể loại
+        </a>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tìm kiếm & Lọc</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index" class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label for="searchName" class="form-label">Tên thể loại</label>
+                    <input type="text" class="form-control" id="searchName" name="searchTerm" value="@ViewBag.SearchTerm" placeholder="Nhập tên thể loại...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách Thể loại</h6>
+            <div class="text-muted">
+                <span id="totalCount">@Model.Count()</span> thể loại
+            </div>
+        </div>
+        <div class="card-body">
+            @if (isSearching)
+            {
+                if (Model.Any())
+                {
+                    <div class="alert alert-success">Tìm thấy @Model.Count() thể loại phù hợp.</div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">Không có thể loại nào được tìm thấy với từ khóa này.</div>
+                }
+            }
+            <div class="table-responsive">
+                <table class="table table-bordered" id="categoriesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Tên thể loại</th>
+                            <th>Mô tả</th>
+                            <th>Thứ tự</th>
+                            <th>Số sách</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model)
+                        {
+                            <tr>
+                                <td class="text-center">
+                                    @if (!string.IsNullOrEmpty(category.IconClass))
+                                    {
+                                        <i class="@category.IconClass fa-2x text-primary"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-tag fa-2x text-muted"></i>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@category.Name</div>
+                                    @if (!string.IsNullOrEmpty(category.Description))
+                                    {
+                                        <small class="text-muted">@(category.Description.Length > 50 ? category.Description.Substring(0, 50) + "..." : category.Description)</small>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(category.Description))
+                                    {
+                                        <span>@category.Description</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa có mô tả</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info fs-6">@category.DisplayOrder</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary fs-6">@category.BookCount</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Không hoạt động</span>
+                                    }
+                                </td>
+                                <td>
+                                    @category.CreatedDate.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@category.Id" 
+                                           class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@category.Id" 
+                                           class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-controller="Book" asp-action="ByCategory" asp-route-categoryId="@category.Id" 
+                                           class="btn btn-sm btn-outline-primary" title="Xem sách">
+                                            <i class="fas fa-book"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="confirmDelete('@category.Id', '@category.Name')" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa thể loại <strong id="categoryNameToDelete"></strong>?</p>
+                <p class="text-danger"><small>Hành động này không thể hoàn tác!</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form asp-action="Delete" method="post" style="display: inline;">
+                    <input type="hidden" id="categoryIdToDelete" name="id" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, name) {
+            $('#categoryIdToDelete').val(id);
+            $('#categoryNameToDelete').text(name);
+            $('#deleteModal').modal('show');
+        }
+    </script>
+}

@@ -32,7 +32,8 @@ public class UserController : Controller
         var roles = _unitOfWork.Role.GetRoles();
         if (user == null)
         {
-            return NotFound();
+            TempData["Error"] = "Không tìm thấy người dùng.";
+            return RedirectToAction(nameof(Index));
         }
 
         var userRoles = _signInManager.UserManager.GetRolesAsync(user);
@@ -57,27 +58,39 @@ public class UserController : Controller
         var user = _unitOfWork.User.GetUser(data.User!.Id);
         if (user == null)
         {
-            return NotFound();
+            TempData["Error"] = "Không tìm thấy người dùng.";
+            return RedirectToAction(nameof(Index));
         }
-        var userRoles = await _signInManager.UserManager.GetRolesAsync(user);
 
-        var rolesToAdd = data.Roles!.Where(role => role.Selected && !userRoles.Contains(role.Text!)).Select(role => role.Text!).ToList();
-        var rolesToRemove = data.Roles!.Where(role => !role.Selected && userRoles.Contains(role.Text!)).Select(role => role.Text!).ToList();
-        if (rolesToAdd.Any())
+        try
         {
-            await _signInManager.UserManager.AddToRolesAsync(user, rolesToAdd);
+            var userRoles = await _signInManager.UserManager.GetRolesAsync(user);
+
+            var rolesToAdd = data.Roles!.Where(role => role.Selected && !userRoles.Contains(role.Text!)).Select(role => role.Text!).ToList();
+            var rolesToRemove = data.Roles!.Where(role => !role.Selected && userRoles.Contains(role.Text!)).Select(role => role.Text!).ToList();
+
+            if (rolesToAdd.Any())
+            {
+                await _signInManager.UserManager.AddToRolesAsync(user, rolesToAdd);
+            }
+            if (rolesToRemove.Any())
+            {
+                await _signInManager.UserManager.RemoveFromRolesAsync(user, rolesToRemove);
+            }
+
+            user.FirstName = data.User.FirstName;
+            user.LastName = data.User.LastName;
+            user.Email = data.User.Email;
+
+            _unitOfWork.User.UpdateUser(user);
+
+            TempData["Success"] = $"Cập nhật người dùng '{user.UserName}' thành công!";
+            return RedirectToAction(nameof(Index));
         }
-        if (rolesToRemove.Any())
+        catch (Exception ex)
         {
-            await _signInManager.UserManager.RemoveFromRolesAsync(user, rolesToRemove);
+            TempData["Error"] = $"Có lỗi xảy ra khi cập nhật người dùng: {ex.Message}";
+            return RedirectToAction(nameof(Edit), new { id = data.User.Id });
         }
-        user.FirstName = data.User.FirstName;
-        user.LastName = data.User.LastName;
-        user.Email = data.User.Email;
-
-        _unitOfWork.User.UpdateUser(user);
-
-        return RedirectToAction(nameof(Index));
-
     }
 }

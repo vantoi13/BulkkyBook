@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BulkkyBook.styles.css" asp-append-version="true" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Toastr -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 </head>
 
 <body>
@@ -44,6 +48,28 @@
                                             p.FunctionId == Constants.Functions.SystemRole &&
                                             p.CommandId == Constants.Commands.Read);
                         });
+
+                        var hasAuthorPermission = userRoles.Any(role =>
+                        {
+                            var permissions = UnitOfWork.Permission.GetPermissionsByRole(role);
+                            return permissions.Any(p =>
+                                            p.FunctionId == Constants.Functions.SystemAuthor &&
+                                            p.CommandId == Constants.Commands.Read);
+                        });
+                        var hasCategoryPermission = userRoles.Any(role =>
+                        {
+                            var permissions = UnitOfWork.Permission.GetPermissionsByRole(role);
+                            return permissions.Any(p =>
+                                            p.FunctionId == Constants.Functions.SystemCategory &&
+                                            p.CommandId == Constants.Commands.Read);
+                        });
+                        var hasBookPermission = userRoles.Any(role =>
+                        {
+                            var permissions = UnitOfWork.Permission.GetPermissionsByRole(role);
+                            return permissions.Any(p =>
+                                            p.FunctionId == Constants.Functions.SystemBook &&
+                                            p.CommandId == Constants.Commands.Read);
+                        });
                     }
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
@@ -63,6 +89,26 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">Users</a>
+                            </li>
+                        }
+                        @if (hasAuthorPermission)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Author"
+                                    asp-action="Index">Authors</a>
+                            </li>
+                        }
+                        @if (hasCategoryPermission)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Category"
+                                    asp-action="Index">Categories</a>
+                            </li>
+                        }
+                        @if (hasBookPermission)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Books</a>
                             </li>
                         }
                     </ul>
@@ -86,6 +132,45 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- jQuery Validation -->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Toastr configuration
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Show toastr messages if available
+        @if (TempData["Success"] != null)
+            {
+                <text>
+                    toastr.success('@TempData["Success"]');
+                </text>
+        }
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                    toastr.error('@TempData["Error"]');
+                </text>
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 
